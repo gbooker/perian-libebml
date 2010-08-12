@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2005 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -30,7 +30,7 @@
 
 /*!
 	\file
-	\version \$Id: EbmlUnicodeString.cpp 1079 2005-03-03 13:18:14Z robux4 $
+	\version \$Id$
 	\author Steve Lhomme     <robux4 @ users.sf.net>
 	\author Jory Stone       <jcsston @ toughguy.net>
 */
@@ -76,6 +76,9 @@ UTFstring & UTFstring::operator=(const UTFstring & _aBuf)
 	*this = _aBuf.c_str();
 	return *this;
 }
+
+UTFstring::operator const wchar_t*() const {return _Data;}
+
 
 UTFstring & UTFstring::operator=(const wchar_t * _aBuf)
 {
@@ -207,14 +210,14 @@ bool UTFstring::wcscmp_internal(const wchar_t *str1, const wchar_t *str2)
 EbmlUnicodeString::EbmlUnicodeString()
 :EbmlElement(0, false)
 {
-	DefaultSize = 0;
+	SetDefaultSize(0);
 }
 
 EbmlUnicodeString::EbmlUnicodeString(const UTFstring & aDefaultValue)
 :EbmlElement(0, true), Value(aDefaultValue), DefaultValue(aDefaultValue)
 {
-	DefaultSize = 0;
-	DefaultIsSet = true;
+	SetDefaultSize(0);
+	SetDefaultIsSet();
 }
 
 EbmlUnicodeString::EbmlUnicodeString(const EbmlUnicodeString & ElementToClone)
@@ -224,11 +227,25 @@ EbmlUnicodeString::EbmlUnicodeString(const EbmlUnicodeString & ElementToClone)
 {
 }
 
+void EbmlUnicodeString::SetDefaultValue(UTFstring & aValue)
+{
+    assert(!DefaultISset());
+    DefaultValue = aValue;
+    SetDefaultIsSet();
+}
+
+const UTFstring & EbmlUnicodeString::DefaultVal() const
+{
+    assert(DefaultISset());
+    return DefaultValue;
+}
+
+
 /*!
 \note limited to UCS-2
 \todo handle exception on errors
 */
-uint32 EbmlUnicodeString::RenderData(IOCallback & output, bool bForceRender, bool bKeepIntact)
+filepos_t EbmlUnicodeString::RenderData(IOCallback & output, bool bForceRender, bool bWithDefault)
 {
 	uint32 Result = Value.GetUTF8().length();
 
@@ -236,14 +253,14 @@ uint32 EbmlUnicodeString::RenderData(IOCallback & output, bool bForceRender, boo
 		output.writeFully(Value.GetUTF8().c_str(), Result);
 	}
 
-	if (Result < DefaultSize) {
+	if (Result < GetDefaultSize()) {
 		// pad the rest with 0
-		binary *Pad = new binary[DefaultSize - Result];
+		binary *Pad = new binary[GetDefaultSize() - Result];
 		if (Pad != NULL) {
-			memset(Pad, 0x00, DefaultSize - Result);
-			output.writeFully(Pad, DefaultSize - Result);
+			memset(Pad, 0x00, GetDefaultSize() - Result);
+			output.writeFully(Pad, GetDefaultSize() - Result);
 
-			Result = DefaultSize;
+			Result = GetDefaultSize();
 			delete [] Pad;
 		}
 	}
@@ -251,57 +268,59 @@ uint32 EbmlUnicodeString::RenderData(IOCallback & output, bool bForceRender, boo
 	return Result;
 }
 
+EbmlUnicodeString::operator const UTFstring &() const {return Value;}
+
 EbmlUnicodeString & EbmlUnicodeString::operator=(const UTFstring & NewString)
 {
 	Value = NewString;
-	bValueIsSet = true;
+	SetValueIsSet();
 	return *this;
 }
 
 /*!
 \note limited to UCS-2
 */
-uint64 EbmlUnicodeString::UpdateSize(bool bKeepIntact, bool bForceRender)
+uint64 EbmlUnicodeString::UpdateSize(bool bWithDefault, bool bForceRender)
 {
-	if (!bKeepIntact && IsDefaultValue())
+	if (!bWithDefault && IsDefaultValue())
 		return 0;
 
-	Size = Value.GetUTF8().length();
-	if (Size < DefaultSize)
-		Size = DefaultSize;
+	SetSize_(Value.GetUTF8().length());
+	if (GetSize() < GetDefaultSize())
+		SetSize_(GetDefaultSize());
 
-	return Size;
+	return GetSize();
 }
 
 /*!
 	\note limited to UCS-2
 */
-uint64 EbmlUnicodeString::ReadData(IOCallback & input, ScopeMode ReadFully)
+filepos_t EbmlUnicodeString::ReadData(IOCallback & input, ScopeMode ReadFully)
 {	
 	if (ReadFully != SCOPE_NO_DATA)
 	{
-		if (Size == 0) {
+		if (GetSize() == 0) {
 			Value = UTFstring::value_type(0);
-			bValueIsSet = true;
+			SetValueIsSet();
 		} else {
-			char *Buffer = new char[Size+1];
+			char *Buffer = new char[GetSize()+1];
 			if (Buffer == NULL) {
 				// impossible to read, skip it
-				input.setFilePointer(Size, seek_current);
+				input.setFilePointer(GetSize(), seek_current);
 			} else {
-				input.readFully(Buffer, Size);
-				if (Buffer[Size-1] != 0) {
-					Buffer[Size] = 0;
+				input.readFully(Buffer, GetSize());
+				if (Buffer[GetSize()-1] != 0) {
+					Buffer[GetSize()] = 0;
 				}
 
 				Value.SetUTF8(Buffer); // implicit conversion to std::string
 				delete [] Buffer;
-				bValueIsSet = true;
+				SetValueIsSet();
 			}
 		}
 	}
 
-	return Size;
+	return GetSize();
 }
 
 END_LIBEBML_NAMESPACE

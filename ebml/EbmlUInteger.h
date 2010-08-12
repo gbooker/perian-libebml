@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2005 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -30,7 +30,7 @@
 
 /*!
 	\file
-	\version \$Id: EbmlUInteger.h 1079 2005-03-03 13:18:14Z robux4 $
+	\version \$Id$
 	\author Steve Lhomme     <robux4 @ users.sf.net>
 	\author Julien Coloos    <suiryc @ users.sf.net>
 	\author Moritz Bunkus    <moritz @ bunkus.org>
@@ -52,37 +52,41 @@ const int DEFAULT_UINT_SIZE = 0; ///< optimal size stored
 class EBML_DLL_API EbmlUInteger : public EbmlElement {
 	public:
 		EbmlUInteger();
-		EbmlUInteger(const uint64 DefaultValue);
+		EbmlUInteger(uint64 DefaultValue);
 		EbmlUInteger(const EbmlUInteger & ElementToClone);
 	
-		EbmlUInteger & operator=(const uint64 NewValue) {Value = NewValue; bValueIsSet = true; return *this;}
+		EbmlUInteger & operator=(uint64 NewValue) {Value = NewValue; SetValueIsSet(); return *this;}
 
 		/*!
 			Set the default size of the integer (usually 1,2,4 or 8)
 		*/
-		void SetDefaultSize(const int nDefaultSize = DEFAULT_UINT_SIZE) {Size = nDefaultSize;}
+		virtual void SetDefaultSize(uint64 nDefaultSize = DEFAULT_UINT_SIZE) {EbmlElement::SetDefaultSize(nDefaultSize); SetSize_(nDefaultSize);}
 
-		bool ValidateSize() const {return (Size <= 8);}
-		uint32 RenderData(IOCallback & output, bool bForceRender, bool bKeepIntact = false);
-		uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
-		uint64 UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
+		virtual bool ValidateSize() const {return IsFiniteSize() && (GetSize() <= 8);}
+		filepos_t RenderData(IOCallback & output, bool bForceRender, bool bWithDefault = false);
+		filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
+		filepos_t UpdateSize(bool bWithDefault = false, bool bForceRender = false);
 		
-		bool operator<(const EbmlUInteger & EltCmp) const {return Value < EltCmp.Value;}
+		virtual bool IsSmallerThan(const EbmlElement *Cmp) const;
 		
-		operator uint8()  const {return uint8(Value); }
-		operator uint16() const {return uint16(Value);}
-		operator uint32() const {return uint32(Value);}
-		operator uint64() const {return Value;}
+		operator uint8()  const;
+		operator uint16() const;
+		operator uint32() const;
+		operator uint64() const;
 
-		void SetDefaultValue(uint64 aValue) {assert(!DefaultIsSet); DefaultValue = aValue; DefaultIsSet = true;}
+		void SetDefaultValue(uint64);
     
-		const uint64 DefaultVal() const {assert(DefaultIsSet); return DefaultValue;}
+		uint64 DefaultVal() const;
 
 		bool IsDefaultValue() const {
 			return (DefaultISset() && Value == DefaultValue);
 		}
 
-	protected:
+#if defined(EBML_STRICT_API)
+    private:
+#else
+    protected:
+#endif
 		uint64 Value; /// The actual value of the element
 		uint64 DefaultValue;
 };

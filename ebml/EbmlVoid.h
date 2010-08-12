@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2005 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -41,39 +41,31 @@
 
 START_LIBEBML_NAMESPACE
 
-class EBML_DLL_API EbmlVoid : public EbmlBinary {
+DECLARE_EBML_BINARY(EbmlVoid)
 	public:
-		EbmlVoid();
 		EbmlVoid(const EbmlVoid & ElementToClone) :EbmlBinary(ElementToClone){}
-		static EbmlElement & Create() {return *(new EbmlVoid);}
-		const EbmlCallbacks & Generic() const {return ClassInfos;}
-		bool ValidateSize() const {return true;} // any void element is accepted
-		static const EbmlCallbacks ClassInfos;
-
-		operator const EbmlId &() const {return ClassInfos.GlobalId;}
-		bool IsYourId(const EbmlId & TestId) const;
 
 		/*!
 			\brief Set the size of the data (not the complete size of the element)
 		*/
-		void SetSize(uint64 aSize) {Size = aSize;}
+		void SetSize(uint64 aSize) {SetSize_(aSize);}
 
 		/*!
 			\note overwrite to write fake data 
 		*/
-		uint32 RenderData(IOCallback & output, bool bForceRender, bool bKeepIntact = false);
+		filepos_t RenderData(IOCallback & output, bool bForceRender, bool bWithDefault = false);
 
 		/*!
 			\brief Replace the void element content (written) with this one
 		*/
-		uint64 ReplaceWith(EbmlElement & EltToReplaceWith, IOCallback & output, bool ComeBackAfterward = true, bool bKeepIntact = false);
+		uint64 ReplaceWith(EbmlElement & EltToReplaceWith, IOCallback & output, bool ComeBackAfterward = true, bool bWithDefault = false);
 
 		/*!
 			\brief Void the content of an element
 		*/
-		uint64 Overwrite(const EbmlElement & EltToVoid, IOCallback & output, bool ComeBackAfterward = true, bool bKeepIntact = false);
+		uint64 Overwrite(const EbmlElement & EltToVoid, IOCallback & output, bool ComeBackAfterward = true, bool bWithDefault = false);
 
-		EbmlElement * Clone() const {return new EbmlVoid(*this);}
+        EBML_CONCRETE_CLASS(EbmlVoid)
 };
 
 END_LIBEBML_NAMESPACE

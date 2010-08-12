@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2004 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -40,14 +40,20 @@
 
 START_LIBEBML_NAMESPACE
 
+
+#if defined(EBML_STRICT_API)
+#define EBML_ID_VALUE(id)  (id).GetValue()
+#define EBML_ID_LENGTH(id) (id).GetLength()
+#else
+#define EBML_ID_VALUE(id)  (id).Value
+#define EBML_ID_LENGTH(id) (id).Length
+#endif
+
 /*!
 	\class EbmlId
 */
 class EBML_DLL_API EbmlId {
 	public:
-		uint32 Value;
-		unsigned int Length;
-
 		EbmlId(const binary aValue[4], const unsigned int aLength)
 			:Length(aLength)
 		{
@@ -77,6 +83,15 @@ class EBML_DLL_API EbmlId {
 				Buffer[i] = (Value >> (8*(Length-i-1))) & 0xFF;
 			}
 		}
+
+        inline size_t GetLength() const { return Length; }
+        inline uint32 GetValue() const { return Value; }
+
+#if defined(EBML_STRICT_API)
+    private:
+#endif
+		uint32 Value;
+		size_t Length;
 };
 
 END_LIBEBML_NAMESPACE

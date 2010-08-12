@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2004 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -43,81 +43,53 @@
 
 START_LIBEBML_NAMESPACE
 
-class EBML_DLL_API EVersion : public EbmlUInteger {
+DECLARE_EBML_UINTEGER(EVersion)
 	public:
-		EVersion() :EbmlUInteger(1) {}
 		EVersion(const EVersion & ElementToClone) : EbmlUInteger(ElementToClone) {}
-		static EbmlElement & Create() {return *(new EVersion);}
-		const EbmlCallbacks & Generic() const {return ClassInfos;}
-		static const EbmlCallbacks ClassInfos;
-		operator const EbmlId &() const {return ClassInfos.GlobalId;}
-		EbmlElement * Clone() const {return new EVersion(*this);}
+
+        EBML_CONCRETE_CLASS(EVersion)
 };
 
-class EBML_DLL_API EReadVersion : public EbmlUInteger {
+DECLARE_EBML_UINTEGER(EReadVersion)
 	public:
-		EReadVersion() :EbmlUInteger(1) {}
 		EReadVersion(const EReadVersion & ElementToClone) : EbmlUInteger(ElementToClone) {}
-		static EbmlElement & Create() {return *(new EReadVersion);}
-		const EbmlCallbacks & Generic() const {return ClassInfos;}
-		static const EbmlCallbacks ClassInfos;
-		operator const EbmlId &() const {return ClassInfos.GlobalId;}
-		EbmlElement * Clone() const {return new EReadVersion(*this);}
+
+        EBML_CONCRETE_CLASS(EReadVersion)
 };
 
-class EBML_DLL_API EMaxIdLength : public EbmlUInteger {
+DECLARE_EBML_UINTEGER(EMaxIdLength)
 	public:
-		EMaxIdLength() :EbmlUInteger(4) {}
 		EMaxIdLength(const EMaxIdLength & ElementToClone) : EbmlUInteger(ElementToClone) {}
-		static EbmlElement & Create() {return *(new EMaxIdLength);}
-		const EbmlCallbacks & Generic() const {return ClassInfos;}
-		static const EbmlCallbacks ClassInfos;
-		operator const EbmlId &() const {return ClassInfos.GlobalId;}
-		EbmlElement * Clone() const {return new EMaxIdLength(*this);}
+
+        EBML_CONCRETE_CLASS(EMaxIdLength)
 };
 
-class EBML_DLL_API EMaxSizeLength : public EbmlUInteger {
+DECLARE_EBML_UINTEGER(EMaxSizeLength)
 	public:
-		EMaxSizeLength() :EbmlUInteger(8) {}
 		EMaxSizeLength(const EMaxSizeLength & ElementToClone) : EbmlUInteger(ElementToClone) {}
-		static EbmlElement & Create() {return *(new EMaxSizeLength);}
-		const EbmlCallbacks & Generic() const {return ClassInfos;}
-		static const EbmlCallbacks ClassInfos;
-		operator const EbmlId &() const {return ClassInfos.GlobalId;}
-		EbmlElement * Clone() const {return new EMaxSizeLength(*this);}
+
+        EBML_CONCRETE_CLASS(EMaxSizeLength)
 };
 
-class EBML_DLL_API EDocType : public EbmlString {
+DECLARE_EBML_STRING(EDocType)
 	public:
-		EDocType() {}
 		EDocType(const EDocType & ElementToClone) : EbmlString(ElementToClone) {}
-		static EbmlElement & Create() {return *(new EDocType);}
-		const EbmlCallbacks & Generic() const {return ClassInfos;}
-		static const EbmlCallbacks ClassInfos;
-		operator const EbmlId &() const {return ClassInfos.GlobalId;}
-		EbmlElement * Clone() const {return new EDocType(*this);}
+
+        EBML_CONCRETE_CLASS(EDocType)
 };
 
-class EBML_DLL_API EDocTypeVersion : public EbmlUInteger {
+DECLARE_EBML_UINTEGER(EDocTypeVersion)
 	public:
-		EDocTypeVersion() {}
 		EDocTypeVersion(const EDocTypeVersion & ElementToClone) : EbmlUInteger(ElementToClone) {}
-		static EbmlElement & Create() {return *(new EDocTypeVersion);}
-		const EbmlCallbacks & Generic() const {return ClassInfos;}
-		static const EbmlCallbacks ClassInfos;
-		operator const EbmlId &() const {return ClassInfos.GlobalId;}
-		EbmlElement * Clone() const {return new EDocTypeVersion(*this);}
+
+        EBML_CONCRETE_CLASS(EDocTypeVersion)
 };
 
-class EBML_DLL_API EDocTypeReadVersion : public EbmlUInteger {
+DECLARE_EBML_UINTEGER(EDocTypeReadVersion)
 	public:
-		EDocTypeReadVersion() {}
 		EDocTypeReadVersion(const EDocTypeReadVersion & ElementToClone) : EbmlUInteger(ElementToClone) {}
-		static EbmlElement & Create() {return *(new EDocTypeReadVersion);}
-		const EbmlCallbacks & Generic() const {return ClassInfos;}
-		static const EbmlCallbacks ClassInfos;
-		operator const EbmlId &() const {return ClassInfos.GlobalId;}
-		EbmlElement * Clone() const {return new EDocTypeReadVersion(*this);}
+
+        EBML_CONCRETE_CLASS(EDocTypeReadVersion)
 };
 
 END_LIBEBML_NAMESPACE

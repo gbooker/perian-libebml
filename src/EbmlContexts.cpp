@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2004 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -39,13 +39,13 @@
 
 START_LIBEBML_NAMESPACE
 
-const EbmlSemantic EbmlGlobal_ContextList[2] =
+static const EbmlSemantic EbmlGlobal_ContextList[2] =
 {
-	EbmlSemantic(false, false, EbmlCrc32::ClassInfos),   ///< EbmlCrc32
-	EbmlSemantic(false, false, EbmlVoid::ClassInfos),    ///< EbmlVoid
+	EbmlSemantic(false, false, EBML_INFO(EbmlCrc32)),   ///< EbmlCrc32
+	EbmlSemantic(false, false, EBML_INFO(EbmlVoid)),    ///< EbmlVoid
 };
 
-const EbmlSemanticContext EbmlVoid_Context = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
+const EbmlSemanticContext Context_EbmlGlobal = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, NULL);
 
 static const EbmlSemanticContext EbmlGlobal_Context = EbmlSemanticContext(countof(EbmlGlobal_ContextList), EbmlGlobal_ContextList, NULL, *GetEbmlGlobal_Context, NULL);
 

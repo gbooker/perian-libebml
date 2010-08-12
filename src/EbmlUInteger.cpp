@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2005 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -30,7 +30,7 @@
 
 /*!
 	\file
-	\version \$Id: EbmlUInteger.cpp 1079 2005-03-03 13:18:14Z robux4 $
+	\version \$Id$
 	\author Steve Lhomme     <robux4 @ users.sf.net>
 	\author Moritz Bunkus <moritz @ bunkus.org>
 */
@@ -44,10 +44,10 @@ EbmlUInteger::EbmlUInteger()
  :EbmlElement(DEFAULT_UINT_SIZE, false)
 {}
 
-EbmlUInteger::EbmlUInteger(const uint64 aDefaultValue)
+EbmlUInteger::EbmlUInteger(uint64 aDefaultValue)
  :EbmlElement(DEFAULT_UINT_SIZE, true), Value(aDefaultValue), DefaultValue(aDefaultValue)
 {
-	DefaultIsSet = true;
+	SetDefaultIsSet();
 }
 
 EbmlUInteger::EbmlUInteger(const EbmlUInteger & ElementToClone)
@@ -57,74 +57,101 @@ EbmlUInteger::EbmlUInteger(const EbmlUInteger & ElementToClone)
 {
 }
 
+void EbmlUInteger::SetDefaultValue(uint64 aValue)
+{
+    assert(!DefaultISset());
+    DefaultValue = aValue;
+    SetDefaultIsSet();
+}
+
+uint64 EbmlUInteger::DefaultVal() const
+{
+    assert(DefaultISset());
+    return DefaultValue;
+}
+
+EbmlUInteger::operator uint8()  const {return uint8(Value); }
+EbmlUInteger::operator uint16() const {return uint16(Value);}
+EbmlUInteger::operator uint32() const {return uint32(Value);}
+EbmlUInteger::operator uint64() const {return Value;}
+
+
 /*!
 	\todo handle exception on errors
 */
-uint32 EbmlUInteger::RenderData(IOCallback & output, bool bForceRender, bool bKeepIntact)
+filepos_t EbmlUInteger::RenderData(IOCallback & output, bool bForceRender, bool bWithDefault)
 {
 	binary FinalData[8]; // we don't handle more than 64 bits integers
 	
-	if (SizeLength > 8)
+	if (GetSizeLength() > 8)
 		return 0; // integer bigger coded on more than 64 bits are not supported
 	
 	uint64 TempValue = Value;
-	for (unsigned int i=0; i<Size;i++) {
-		FinalData[Size-i-1] = TempValue & 0xFF;
+	for (unsigned int i=0; i<GetSize();i++) {
+		FinalData[GetSize()-i-1] = TempValue & 0xFF;
 		TempValue >>= 8;
 	}
 	
-	output.writeFully(FinalData,Size);
+	output.writeFully(FinalData,GetSize());
 
-	return Size;
+	return GetSize();
 }
 
-uint64 EbmlUInteger::UpdateSize(bool bKeepIntact, bool bForceRender)
+uint64 EbmlUInteger::UpdateSize(bool bWithDefault, bool bForceRender)
 {
-	if (!bKeepIntact && IsDefaultValue())
+	if (!bWithDefault && IsDefaultValue())
 		return 0;
 
 	if (Value <= 0xFF) {
-		Size = 1;
+		SetSize_(1);
 	} else if (Value <= 0xFFFF) {
-		Size = 2;
+		SetSize_(2);
 	} else if (Value <= 0xFFFFFF) {
-		Size = 3;
+		SetSize_(3);
 	} else if (Value <= 0xFFFFFFFF) {
-		Size = 4;
+		SetSize_(4);
 	} else if (Value <= EBML_PRETTYLONGINT(0xFFFFFFFFFF)) {
-		Size = 5;
+		SetSize_(5);
 	} else if (Value <= EBML_PRETTYLONGINT(0xFFFFFFFFFFFF)) {
-		Size = 6;
+		SetSize_(6);
 	} else if (Value <= EBML_PRETTYLONGINT(0xFFFFFFFFFFFFFF)) {
-		Size = 7;
+		SetSize_(7);
 	} else {
-		Size = 8;
+		SetSize_(8);
 	}
 
-	if (DefaultSize > Size) {
-		Size = DefaultSize;
+	if (GetDefaultSize() > GetSize()) {
+		SetSize_(GetDefaultSize());
 	}
 
-	return Size;
+	return GetSize();
 }
 
-uint64 EbmlUInteger::ReadData(IOCallback & input, ScopeMode ReadFully)
+filepos_t EbmlUInteger::ReadData(IOCallback & input, ScopeMode ReadFully)
 {
 	if (ReadFully != SCOPE_NO_DATA)
 	{
 		binary Buffer[8];
-		input.readFully(Buffer, Size);
+		input.readFully(Buffer, GetSize());
 		Value = 0;
 		
-		for (unsigned int i=0; i<Size; i++)
+		for (unsigned int i=0; i<GetSize(); i++)
 		{
 			Value <<= 8;
 			Value |= Buffer[i];
 		}
-		bValueIsSet = true;
+		SetValueIsSet();
 	}
 
-	return Size;
+	return GetSize();
+}
+
+bool EbmlUInteger::IsSmallerThan(const EbmlElement *Cmp) const
+{
+	if (EbmlId(*this) == EbmlId(*Cmp))
+		return this->Value < static_cast<const EbmlUInteger *>(Cmp)->Value;
+	else
+		return false;
 }
 
 END_LIBEBML_NAMESPACE

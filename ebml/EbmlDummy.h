@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2004 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -30,7 +30,7 @@
 
 /*!
 	\file
-	\version \$Id: EbmlDummy.h 639 2004-07-09 20:59:14Z mosu $
+	\version \$Id$
 	\author Steve Lhomme     <robux4 @ users.sf.net>
 */
 #ifndef LIBEBML_DUMMY_H
@@ -42,23 +42,26 @@ START_LIBEBML_NAMESPACE
 
 class EBML_DLL_API EbmlDummy : public EbmlBinary {
 	public:
-		EbmlDummy() :DummyId(DummyRawId)  {}
+		EbmlDummy() :DummyId(DummyRawId) {}
 		EbmlDummy(const EbmlId & aId) :EbmlBinary(), DummyId(aId) {}
 		EbmlDummy(const EbmlDummy & ElementToClone):EbmlBinary(ElementToClone), DummyId(ElementToClone.DummyId) {}
-		static EbmlElement & Create() {return *(new EbmlDummy);}
-		const EbmlCallbacks & Generic() const {return ClassInfos;}
-		static const EbmlCallbacks ClassInfos;
-		operator const EbmlId &() const {return DummyId;}
 
-		bool ValidateSize() const {return true;}
 		bool IsDummy() const {return true;}
 		bool IsDefaultValue() const {return true;}
 
-		EbmlElement * Clone() const {return new EbmlDummy(*this);}
+        virtual operator const EbmlId &() const {
+            return DummyId;
+        }
 
-	protected:
+#if defined(EBML_STRICT_API)
+    private:
+#else
+    protected:
+#endif
 		const EbmlId DummyId;
 		static const EbmlId DummyRawId;
+
+        EBML_CONCRETE_DUMMY_CLASS(EbmlDummy)
 };
 
 END_LIBEBML_NAMESPACE

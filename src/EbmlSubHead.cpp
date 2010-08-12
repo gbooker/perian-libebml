@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2004 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -38,28 +38,12 @@
 
 START_LIBEBML_NAMESPACE
 
-EbmlId EVersion_TheId            (0x4286, 2);
-EbmlId EReadVersion_TheId        (0x42F7, 2);
-EbmlId EMaxIdLength_TheId        (0x42F2, 2);
-EbmlId EMaxSizeLength_TheId      (0x42F3, 2);
-EbmlId EDocType_TheId            (0x4282, 2);
-EbmlId EDocTypeVersion_TheId     (0x4287, 2);
-EbmlId EDocTypeReadVersion_TheId (0x4285, 2);
-
-const EbmlCallbacks EVersion::ClassInfos(EVersion::Create,               EVersion_TheId,        "EBMLVersion",                        EVersion_Context);
-const EbmlCallbacks EReadVersion::ClassInfos(EReadVersion::Create,       EReadVersion_TheId,    "EBMLReadVersion",                    EReadVersion_Context);
-const EbmlCallbacks EMaxIdLength::ClassInfos(EMaxIdLength::Create,       EMaxIdLength_TheId,    "EBMLMaxIdLength",                    EMaxIdLength_Context);
-const EbmlCallbacks EMaxSizeLength::ClassInfos(EMaxSizeLength::Create,   EMaxSizeLength_TheId,  "EBMLMaxSizeLength",                  EMaxSizeLength_Context);
-const EbmlCallbacks EDocType::ClassInfos(EDocType::Create,               EDocType_TheId,        "EBMLDocType",                        EDocType_Context);
-const EbmlCallbacks EDocTypeVersion::ClassInfos(EDocTypeVersion::Create, EDocTypeVersion_TheId, "EBMLDocTypeVersion",                 EDocTypeVersion_Context);
-const EbmlCallbacks EDocTypeReadVersion::ClassInfos(EDocTypeReadVersion::Create, EDocTypeReadVersion_TheId, "EBMLDocTypeReadVersion", EDocTypeReadVersion_Context);
-
-const EbmlSemanticContext EVersion_Context        = EbmlSemanticContext(0, NULL, &EbmlHead_Context, *GetEbmlGlobal_Context, &EVersion::ClassInfos);
-const EbmlSemanticContext EReadVersion_Context    = EbmlSemanticContext(0, NULL, &EbmlHead_Context, *GetEbmlGlobal_Context, &EReadVersion::ClassInfos);
-const EbmlSemanticContext EMaxIdLength_Context    = EbmlSemanticContext(0, NULL, &EbmlHead_Context, *GetEbmlGlobal_Context, &EMaxIdLength::ClassInfos);
-const EbmlSemanticContext EMaxSizeLength_Context  = EbmlSemanticContext(0, NULL, &EbmlHead_Context, *GetEbmlGlobal_Context, &EMaxSizeLength::ClassInfos);
-const EbmlSemanticContext EDocType_Context        = EbmlSemanticContext(0, NULL, &EbmlHead_Context, *GetEbmlGlobal_Context, &EDocType::ClassInfos);
-const EbmlSemanticContext EDocTypeVersion_Context = EbmlSemanticContext(0, NULL, &EbmlHead_Context, *GetEbmlGlobal_Context, &EDocTypeVersion::ClassInfos);
-const EbmlSemanticContext EDocTypeReadVersion_Context = EbmlSemanticContext(0, NULL, &EbmlHead_Context, *GetEbmlGlobal_Context, &EDocTypeReadVersion::ClassInfos);
+DEFINE_EBML_UINTEGER_DEF(EVersion,            0x4286, 2, EbmlHead, "EBMLVersion", 1);
+DEFINE_EBML_UINTEGER_DEF(EReadVersion,        0x42F7, 2, EbmlHead, "EBMLReadVersion", 1);
+DEFINE_EBML_UINTEGER_DEF(EMaxIdLength,        0x42F2, 2, EbmlHead, "EBMLMaxIdLength", 4);
+DEFINE_EBML_UINTEGER_DEF(EMaxSizeLength,      0x42F3, 2, EbmlHead, "EBMLMaxSizeLength", 8);
+DEFINE_EBML_STRING_DEF  (EDocType,            0x4282, 2, EbmlHead, "EBMLDocType", "matroska");
+DEFINE_EBML_UINTEGER_DEF(EDocTypeVersion,     0x4287, 2, EbmlHead, "EBMLDocTypeVersion", 1);
+DEFINE_EBML_UINTEGER_DEF(EDocTypeReadVersion, 0x4285, 2, EbmlHead, "EBMLDocTypeReadVersion", 1);
 
 END_LIBEBML_NAMESPACE

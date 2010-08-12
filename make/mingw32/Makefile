@@ -16,25 +16,28 @@ SHARED = yes
 ifeq (yes,$(DEBUG))
 DEBUGFLAGS=-g -DDEBUG
 endif
-CXX  = g++.exe
-CC   = gcc.exe
-WINDRES = windres.exe
-RES  = 
+CROSS   =
+CXX     = $(CROSS)g++
+CC      = $(CROSS)gcc
+WINDRES = $(CROSS)windres
+RANLIB  = $(CROSS)ranlib
+AR      = $(CROSS)ar
+RES  =
 SRC  = $(wildcard ../../src/*.cpp)
 OBJ  = $(patsubst %.cpp,%.o,$(SRC))
 ifeq (yes,$(SHARED))
 LIBS = libebml.dll
-CXXFLAGS = -DEBML_DLL -DEBML_DLL_EXPORT
+DLLFLAGS = -DEBML_DLL -DEBML_DLL_EXPORT
 else
 LIBS = libebml.a
 endif
-INCS = -I../..
-CXXFLAGS += $(DEBUGFLAGS) $(INCS) 
+INCS = -I$(shell pwd)/../..
+COMPILEFLAGS = $(DEBUGFLAGS) $(INCS) $(DLLFLAGS) $(CXXFLAGS)
 
 .PHONY: all all-before all-after clean clean-custom
 
 .cpp.o:
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(COMPILEFLAGS) -c -o $@ $<
 
 all: lib
 
@@ -47,8 +50,8 @@ distclean dist-clean: clean
 	rm -f .depend
 
 libebml.a: $(OBJ)
-	ar r $@ $(OBJ)
-	ranlib $@
+	$(AR) rcvu $@ $(OBJ)
+	$(RANLIB) $@
 
 libebml.dll: $(OBJ)
 	$(CXX) -shared -Wl,--export-all -Wl,--out-implib=$@.a -o $@ $(OBJ)

@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2005 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -30,7 +30,7 @@
 
 /*!
 	\file
-	\version \$Id: EbmlUnicodeString.h 1079 2005-03-03 13:18:14Z robux4 $
+	\version \$Id$
 	\author Steve Lhomme     <robux4 @ users.sf.net>
 	\author Moritz Bunkus <moritz @ bunkus.org>
 	\author Jory Stone       <jcsston @ toughguy.net>
@@ -71,13 +71,17 @@ public:
 	/// Return length of string
 	size_t length() const {return _Length;}
 
-	operator const wchar_t*() const {return _Data;}
+	operator const wchar_t*() const;
 	const wchar_t* c_str() const {return _Data;}
 
 	const std::string & GetUTF8() const {return UTF8string;}
 	void SetUTF8(const std::string &);
 
-protected:
+#if defined(EBML_STRICT_API)
+    private:
+#else
+    protected:
+#endif
 	size_t _Length; ///< length of the UCS string excluding the \0
 	wchar_t* _Data; ///< internal UCS representation	
 	std::string UTF8string;
@@ -100,23 +104,27 @@ class EBML_DLL_API EbmlUnicodeString : public EbmlElement {
 	
 		virtual ~EbmlUnicodeString() {}
 	
-		bool ValidateSize() const {return true;} // any size is possible
-		uint32 RenderData(IOCallback & output, bool bForceRender, bool bKeepIntact = false);
-		uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
-		uint64 UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
+		virtual bool ValidateSize() const {return IsFiniteSize();} // any size is possible
+		filepos_t RenderData(IOCallback & output, bool bForceRender, bool bWithDefault = false);
+		filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
+		filepos_t UpdateSize(bool bWithDefault = false, bool bForceRender = false);
 	
 		EbmlUnicodeString & operator=(const UTFstring &); ///< platform dependant code
-		operator const UTFstring &() const {return Value;}
+		operator const UTFstring &() const;
 	
-		void SetDefaultValue(UTFstring & aValue) {assert(!DefaultIsSet); DefaultValue = aValue; DefaultIsSet = true;}
+		void SetDefaultValue(UTFstring &);
     
-		UTFstring DefaultVal() const {assert(DefaultIsSet); return DefaultValue;}
+		const UTFstring & DefaultVal() const;
 
 		bool IsDefaultValue() const {
 			return (DefaultISset() && Value == DefaultValue);
 		}
 
-	protected:
+#if defined(EBML_STRICT_API)
+    private:
+#else
+    protected:
+#endif
 		UTFstring Value; /// The actual value of the element
 		UTFstring DefaultValue;
 };

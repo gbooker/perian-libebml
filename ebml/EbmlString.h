@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2005 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -30,7 +30,7 @@
 
 /*!
 	\file
-	\version \$Id: EbmlString.h 1079 2005-03-03 13:18:14Z robux4 $
+	\version \$Id$
 	\author Steve Lhomme     <robux4 @ users.sf.net>
 */
 #ifndef LIBEBML_STRING_H
@@ -55,23 +55,27 @@ class EBML_DLL_API EbmlString : public EbmlElement {
 	
 		virtual ~EbmlString() {}
 	
-		bool ValidateSize() const {return true;} // any size is possible
-		uint32 RenderData(IOCallback & output, bool bForceRender, bool bKeepIntact = false);
-		uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
-		uint64 UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
+		virtual bool ValidateSize() const {return IsFiniteSize();} // any size is possible
+		filepos_t RenderData(IOCallback & output, bool bForceRender, bool bWithDefault = false);
+		filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
+		filepos_t UpdateSize(bool bWithDefault = false, bool bForceRender = false);
 	
-		EbmlString & operator=(const std::string);
-		operator const std::string &() const {return Value;}
+		EbmlString & operator=(const std::string &);
+		operator const std::string &() const;
 	
-		void SetDefaultValue(std::string & aValue) {assert(!DefaultIsSet); DefaultValue = aValue; DefaultIsSet = true;}
+		void SetDefaultValue(std::string &);
     
-		const std::string DefaultVal() const {assert(DefaultIsSet); return DefaultValue;}
+		const std::string & DefaultVal() const;
 
 		bool IsDefaultValue() const {
 			return (DefaultISset() && Value == DefaultValue);
 		}
 
-	protected:
+#if defined(EBML_STRICT_API)
+    private:
+#else
+    protected:
+#endif
 		std::string Value;  /// The actual value of the element
 		std::string DefaultValue;
 };

@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2005 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -30,54 +30,34 @@
 
 /*!
 	\file
-	\version \$Id: EbmlCrc32.h 1155 2005-05-06 11:43:38Z robux4 $
+	\version \$Id$
 	\author Steve Lhomme     <robux4 @ users.sf.net>
 	\author Jory Stone       <jcsston @ toughguy.net>
 */
 #ifndef LIBEBML_CRC32_H
 #define LIBEBML_CRC32_H
 
+#include <cassert>
+
 #include "EbmlTypes.h"
 #include "EbmlBinary.h"
 
 START_LIBEBML_NAMESPACE
 
-const uint32 CRC32_NEGL = 0xffffffffL;
-
-#ifdef WORDS_BIGENDIAN
-# define CRC32_INDEX(c) (c >> 24)
-# define CRC32_SHIFTED(c) (c << 8)
-#else
-# define CRC32_INDEX(c) (c & 0xff)
-# define CRC32_SHIFTED(c) (c >> 8)
-#endif
-
-class EBML_DLL_API EbmlCrc32 : public EbmlBinary {
+DECLARE_EBML_BINARY(EbmlCrc32)
 	public:
-		EbmlCrc32();
 		EbmlCrc32(const EbmlCrc32 & ElementToClone);
-		static EbmlElement & Create() {return *(new EbmlCrc32);}
-		const EbmlCallbacks & Generic() const {return ClassInfos;}
-		bool ValidateSize() const {return (Size == 4);}
-		uint32 RenderData(IOCallback & output, bool bForceRender, bool bKeepIntact = false);
-		uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
-//		uint64 UpdateSize(bool bKeepIntact = false);
+		virtual bool ValidateSize() const {return IsFiniteSize() && (GetSize() == 4);}
+		filepos_t RenderData(IOCallback & output, bool bForceRender, bool bWithDefault = false);
+		filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
+//		filepos_t UpdateSize(bool bWithDefault = false);
 		
-		static const EbmlCallbacks ClassInfos;
 		bool IsDefaultValue() const {
 			return false;
 		}
 
-		operator const EbmlId &() const {return ClassInfos.GlobalId;}
-		bool IsYourId(const EbmlId & TestId) const;
-	
 		void AddElementCRC32(EbmlElement &ElementToCRC);
 		bool CheckElementCRC32(EbmlElement &ElementToCRC);
-		
-		/*!
-			CRC Checksum Calculation
-		*/
-		enum {DIGESTSIZE = 4};
 		
 		/*!
 			Use this to quickly check a CRC32 with some data
@@ -103,17 +83,21 @@ class EBML_DLL_API EbmlCrc32 : public EbmlBinary {
 			return m_crc_final;
 		};
 	
-		void ForceCrc32(uint32 NewValue) { m_crc_final = NewValue; bValueIsSet = true;}
+		void ForceCrc32(uint32 NewValue) { m_crc_final = NewValue; SetValueIsSet();}
 
-		EbmlElement * Clone() const;
-
-	protected:
-		void ResetCRC() {m_crc = CRC32_NEGL;}
-		void UpdateByte(binary b) {m_crc = m_tab[CRC32_INDEX(m_crc) ^ b] ^ CRC32_SHIFTED(m_crc);}
+#if defined(EBML_STRICT_API)
+    private:
+#else
+    protected:
+#endif
+		void ResetCRC();
+		void UpdateByte(binary b);
 
 		static const uint32 m_tab[256];
 		uint32 m_crc;
 		uint32 m_crc_final;
+        
+        EBML_CONCRETE_CLASS(EbmlCrc32)
 };
 
 template <class T>

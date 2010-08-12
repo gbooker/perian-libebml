@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2005 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -30,14 +30,13 @@
 
 /*!
 	\file
-	\version \$Id: EbmlBinary.h 1298 2008-02-21 22:14:18Z mosu $
+	\version \$Id$
 	\author Steve Lhomme     <robux4 @ users.sf.net>
 	\author Julien Coloos	<suiryc @ users.sf.net>
 */
 #ifndef LIBEBML_BINARY_H
 #define LIBEBML_BINARY_H
 
-#include <string>
 #include <cstring>
 
 #include "EbmlTypes.h"
@@ -63,14 +62,16 @@ class EBML_DLL_API EbmlBinary : public EbmlElement {
 		EbmlBinary(const EbmlBinary & ElementToClone);
 		virtual ~EbmlBinary(void);
 	
-		uint32 RenderData(IOCallback & output, bool bForceRender, bool bKeepIntact = false);
-		uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
-		uint64 UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
+		virtual bool ValidateSize() const {return IsFiniteSize() && GetSize() < 0x7FFFFFFF;} // we don't mind about what's inside
+
+		filepos_t RenderData(IOCallback & output, bool bForceRender, bool bWithDefault = false);
+		filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
+		filepos_t UpdateSize(bool bWithDefault = false, bool bForceRender = false);
 	
 		void SetBuffer(const binary *Buffer, const uint32 BufferSize) {
 			Data = (binary *) Buffer;
-			Size = BufferSize;
-			bValueIsSet = true;
+			SetSize_(BufferSize);
+			SetValueIsSet();
 		}
 
 		binary *GetBuffer() const {return Data;}
@@ -80,12 +81,11 @@ class EBML_DLL_API EbmlBinary : public EbmlElement {
 				free(Data);
 			Data = (binary *)malloc(BufferSize * sizeof(binary));
 			memcpy(Data, Buffer, BufferSize);
-			Size = BufferSize;
-			bValueIsSet = true;
+			SetSize_(BufferSize);
+			SetValueIsSet();
 		}
 		
-		uint64 GetSize() const {return Size;}
-		operator const binary &() const {return *Data;}
+		operator const binary &() const;
 	
 		bool IsDefaultValue() const {
 			return false;
@@ -93,7 +93,11 @@ class EBML_DLL_API EbmlBinary : public EbmlElement {
 
 		bool operator==(const EbmlBinary & ElementToCompare) const;
 
+#if defined(EBML_STRICT_API)
+	private:
+#else
 	protected:
+#endif
 		binary *Data; // the binary data inside the element
 };
 

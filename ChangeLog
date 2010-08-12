@@ -1,3 +1,32 @@
+2010-08-xx robux4
+New 1.1.1 version:
+    - no need to put the internal code of EbmlCrc32 in the public header
+    - more safety on the Binary buffer handling in case we run out of memory
+
+2010-07-xx robux4
+New 1.1.0 version:
+    - EbmlElement::VoidMe() now returns a uint64
+    - move some operator code in the .cpp files (MSVC has issues in DLLs)
+
+2010-06-04 robux4/mosu
+New 1.0.0 version:
+    - rename the library .so name as it's backward incompatible
+    - fixes when reading Master elements with unknown/infinite size
+    - fix the infinite/unknown size reading in EbmlElement::FindNextElement()
+    - fix the EBMLDummy ID reading and displaying
+
+2010-04-30 robux4/mosu
+New 0.8.0 version:
+    - new macros to simplify and unify the way to declare and define EBML elements
+    - new macros to access variables of a Class/Object so that switching to libebml v2 is transparent
+    - add an EBML_STRICT_API compilation flag (off by default) to avoid direct access to internal class variables
+    - fix some building issues on Linux and MinGW
+    - add accessor calls to the base classes to avoid direct access to internal class variables
+    - add iterators to navigate throught the EbmlMaster children
+    - use a new filepos_t type for everything that relates to an element position/data size with INVALID_FILEPOS_T in case of errors
+    - remove the const on integer values
+
+
 2008-02-21 22:14  mosu
 
 	* trunk/libebml/ebml/EbmlBinary.h, trunk/libebml/ebml/EbmlEndian.h,

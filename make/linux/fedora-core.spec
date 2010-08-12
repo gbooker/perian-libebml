@@ -1,7 +1,7 @@
 # SPEC file for libebml on (at least) Fedora Core 1, 2, 3
 
 Name: 		libebml
-Version: 0.7.5
+Version: 1.0.0
 Release: 1
 License: 	LGPL
 Summary:	Extensible Binary Meta Language
@@ -48,7 +48,7 @@ cd ../..
 %install
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 cd make/linux
-make prefix=$RPM_BUILD_ROOT/%{_prefix} install_staticlib install_headers
+make prefix=$RPM_BUILD_ROOT/%{_prefix} libdir=$RPM_BUILD_ROOT/%{_libdir} install_staticlib install_headers
 cd ../..
 
 %clean

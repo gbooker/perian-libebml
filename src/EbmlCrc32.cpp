@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2005 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -38,10 +38,19 @@
 #include "ebml/EbmlContexts.h"
 #include "ebml/MemIOCallback.h"
 
+#ifdef WORDS_BIGENDIAN
+# define CRC32_INDEX(c) (c >> 24)
+# define CRC32_SHIFTED(c) (c << 8)
+#else
+# define CRC32_INDEX(c) (c & 0xff)
+# define CRC32_SHIFTED(c) (c >> 8)
+#endif
+
+const uint32 CRC32_NEGL = 0xffffffffL;
+
 START_LIBEBML_NAMESPACE
 
-EbmlId EbmlCrc32_TheId(0xBF, 1);
-const EbmlCallbacks EbmlCrc32::ClassInfos(EbmlCrc32::Create, EbmlCrc32_TheId, "EBMLCrc32\0ratamadabapa", EbmlVoid_Context);
+DEFINE_EBML_CLASS_GLOBAL(EbmlCrc32, 0xBF, 1, "EBMLCrc32\0ratamadabapa");
 
 const uint32 EbmlCrc32::m_tab[] = {
 #ifdef WORDS_BIGENDIAN
@@ -156,11 +165,11 @@ const uint32 EbmlCrc32::m_tab[] = {
 EbmlCrc32::EbmlCrc32()
 {
 	ResetCRC();
-	DefaultSize = DIGESTSIZE;
+	SetDefaultSize(4);
 	m_crc_final = 0;
-	Size = 4;
+	SetSize_(4);
 	//This EbmlElement has been set
-//	bValueIsSet = true;
+//	SetValueIsSet();
 }
 
 EbmlCrc32::EbmlCrc32(const EbmlCrc32 & ElementToClone)
@@ -170,9 +179,14 @@ EbmlCrc32::EbmlCrc32(const EbmlCrc32 & ElementToClone)
 	m_crc_final = ElementToClone.m_crc_final;
 }
 
-EbmlElement * EbmlCrc32::Clone() const
+void EbmlCrc32::ResetCRC()
 {
-	return new EbmlCrc32(*this);
+    m_crc = CRC32_NEGL;
+}
+
+void EbmlCrc32::UpdateByte(binary b)
+{
+    m_crc = m_tab[CRC32_INDEX(m_crc) ^ b] ^ CRC32_SHIFTED(m_crc);
 }
 
 void EbmlCrc32::AddElementCRC32(EbmlElement &ElementToCRC)
@@ -193,22 +207,22 @@ bool EbmlCrc32::CheckElementCRC32(EbmlElement &ElementToCRC)
 	return CheckCRC(m_crc_final, memoryBuffer.GetDataBuffer(), memoryBuffer.GetDataBufferSize());
 };
 
-uint32 EbmlCrc32::RenderData(IOCallback & output, bool bForceRender, bool bKeepIntact)
+filepos_t EbmlCrc32::RenderData(IOCallback & output, bool bForceRender, bool bWithDefault)
 {
-	uint32 Result = DIGESTSIZE;
+	filepos_t Result = 4;
 
 	if (Result != 0) {
 	    output.writeFully(&m_crc_final, Result);
 	}
 
-	if (Result < DefaultSize) {
+	if (Result < GetDefaultSize()) {
 		// pad the rest with 0
-		binary *Pad = new binary[DefaultSize - Result];
+		binary *Pad = new binary[GetDefaultSize() - Result];
 		if (Pad != NULL) {
-			memset(Pad, 0x00, DefaultSize - Result);
-			output.writeFully(Pad, DefaultSize - Result);
+			memset(Pad, 0x00, GetDefaultSize() - Result);
+			output.writeFully(Pad, GetDefaultSize() - Result);
 
-			Result = DefaultSize;
+			Result = GetDefaultSize();
 			delete [] Pad;
 		}
 	}
@@ -216,24 +230,24 @@ uint32 EbmlCrc32::RenderData(IOCallback & output, bool bForceRender, bool bKeepI
 	return Result;
 }
 
-uint64 EbmlCrc32::ReadData(IOCallback & input, ScopeMode ReadFully)
+filepos_t EbmlCrc32::ReadData(IOCallback & input, ScopeMode ReadFully)
 {
 	if (ReadFully != SCOPE_NO_DATA)
 	{
-		binary *Buffer = new binary[Size];
+		binary *Buffer = new binary[GetSize()];
 		if (Buffer == NULL) {
 			// impossible to read, skip it
-			input.setFilePointer(Size, seek_current);
+			input.setFilePointer(GetSize(), seek_current);
 		} else {
-			input.readFully(Buffer, Size);
+			input.readFully(Buffer, GetSize());
 
 			memcpy((void *)&m_crc_final, Buffer, 4);
 			delete [] Buffer;
-			bValueIsSet = true;
+			SetValueIsSet();
 		}
 	}
 
-	return Size;
+	return GetSize();
 }
 
 bool EbmlCrc32::CheckCRC(uint32 inputCRC, const binary *input, uint32 length)
@@ -333,7 +347,7 @@ void EbmlCrc32::Finalize()
 	//Reset the holding CRC member (m_crc)
 	ResetCRC();
 	//This EbmlElement has been set
-	bValueIsSet = true;
+	SetValueIsSet();
 }
 
 END_LIBEBML_NAMESPACE

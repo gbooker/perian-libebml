@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2005 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -38,69 +38,68 @@
 
 START_LIBEBML_NAMESPACE
 
-EbmlId EbmlVoid_TheId(0xEC, 1);
-const EbmlCallbacks EbmlVoid::ClassInfos(EbmlVoid::Create, EbmlVoid_TheId, "EBMLVoid", EbmlVoid_Context);
+DEFINE_EBML_CLASS_GLOBAL(EbmlVoid, 0xEC, 1, "EBMLVoid");
 
 EbmlVoid::EbmlVoid()
 {
-	bValueIsSet = true;
+	SetValueIsSet();
 }
 
-uint32 EbmlVoid::RenderData(IOCallback & output, bool bForceRender, bool bKeepIntact)
+filepos_t EbmlVoid::RenderData(IOCallback & output, bool bForceRender, bool bWithDefault)
 {
 	// write dummy data by 4KB chunks
 	static binary DummyBuf[4*1024];
 
-	uint64 SizeToWrite = Size;
+	uint64 SizeToWrite = GetSize();
 	while (SizeToWrite > 4*1024)
 	{
 		output.writeFully(DummyBuf, 4*1024);
 		SizeToWrite -= 4*1024;
 	}
 	output.writeFully(DummyBuf, SizeToWrite);
-	return Size;
+	return GetSize();
 }
 
-uint64 EbmlVoid::ReplaceWith(EbmlElement & EltToReplaceWith, IOCallback & output, bool ComeBackAfterward, bool bKeepIntact)
+uint64 EbmlVoid::ReplaceWith(EbmlElement & EltToReplaceWith, IOCallback & output, bool ComeBackAfterward, bool bWithDefault)
 {
-	EltToReplaceWith.UpdateSize(bKeepIntact);
-	if (HeadSize() + Size < EltToReplaceWith.GetSize() + EltToReplaceWith.HeadSize()) {
+	EltToReplaceWith.UpdateSize(bWithDefault);
+	if (HeadSize() + GetSize() < EltToReplaceWith.GetSize() + EltToReplaceWith.HeadSize()) {
 		// the element can't be written here !
-		return 0;
+		return INVALID_FILEPOS_T;
 	}
-	if (HeadSize() + Size - EltToReplaceWith.GetSize() - EltToReplaceWith.HeadSize() == 1) {
+	if (HeadSize() + GetSize() - EltToReplaceWith.GetSize() - EltToReplaceWith.HeadSize() == 1) {
 		// there is not enough space to put a filling element
-		return 0;
+		return INVALID_FILEPOS_T;
 	}
 
 	uint64 CurrentPosition = output.getFilePointer();
 
 	output.setFilePointer(GetElementPosition());
-	EltToReplaceWith.Render(output, bKeepIntact);
+	EltToReplaceWith.Render(output, bWithDefault);
 
-	if (HeadSize() + Size - EltToReplaceWith.GetSize() - EltToReplaceWith.HeadSize() > 1) {
+	if (HeadSize() + GetSize() - EltToReplaceWith.GetSize() - EltToReplaceWith.HeadSize() > 1) {
 	  // fill the rest with another void element
 	  EbmlVoid aTmp;
-	  aTmp.SetSize(HeadSize() + Size - EltToReplaceWith.GetSize() - EltToReplaceWith.HeadSize() - 1); // 1 is the length of the Void ID
+	  aTmp.SetSize_(HeadSize() + GetSize() - EltToReplaceWith.GetSize() - EltToReplaceWith.HeadSize() - 1); // 1 is the length of the Void ID
 	  int HeadBefore = aTmp.HeadSize();
-	  aTmp.SetSize(aTmp.GetSize() - CodedSizeLength(aTmp.Size, aTmp.SizeLength, aTmp.bSizeIsFinite));
+	  aTmp.SetSize_(aTmp.GetSize() - CodedSizeLength(aTmp.GetSize(), aTmp.GetSizeLength(), aTmp.IsFiniteSize()));
 	  int HeadAfter = aTmp.HeadSize();
 	  if (HeadBefore != HeadAfter) {
-		  aTmp.SetSizeLength(CodedSizeLength(aTmp.Size, aTmp.SizeLength, aTmp.bSizeIsFinite) - (HeadAfter - HeadBefore));
+		  aTmp.SetSizeLength(CodedSizeLength(aTmp.GetSize(), aTmp.GetSizeLength(), aTmp.IsFiniteSize()) - (HeadAfter - HeadBefore));
 	  }
-	  aTmp.RenderHead(output, false, bKeepIntact); // the rest of the data is not rewritten
+	  aTmp.RenderHead(output, false, bWithDefault); // the rest of the data is not rewritten
 	}
 
 	if (ComeBackAfterward) {
 		output.setFilePointer(CurrentPosition);
 	}
 
-	return Size + HeadSize();
+	return GetSize() + HeadSize();
 }
 
-uint64 EbmlVoid::Overwrite(const EbmlElement & EltToVoid, IOCallback & output, bool ComeBackAfterward, bool bKeepIntact)
+uint64 EbmlVoid::Overwrite(const EbmlElement & EltToVoid, IOCallback & output, bool ComeBackAfterward, bool bWithDefault)
 {
-//	EltToVoid.UpdateSize(bKeepIntact);
+//	EltToVoid.UpdateSize(bWithDefault);
 	if (EltToVoid.GetElementPosition() == 0) {
 		// this element has never been written
 		return 0;
@@ -115,18 +114,18 @@ uint64 EbmlVoid::Overwrite(const EbmlElement & EltToVoid, IOCallback & output, b
 	output.setFilePointer(EltToVoid.GetElementPosition());
 
 	// compute the size of the voided data based on the original one
-	Size = EltToVoid.GetSize() + EltToVoid.HeadSize() - 1; // 1 for the ID
-	Size -= CodedSizeLength(Size, SizeLength, bSizeIsFinite);
+	SetSize(EltToVoid.GetSize() + EltToVoid.HeadSize() - 1); // 1 for the ID
+	SetSize(GetSize() - CodedSizeLength(GetSize(), GetSizeLength(), IsFiniteSize()));
 	// make sure we handle even the strange cases
-	//uint32 A1 = Size + HeadSize();
+	//uint32 A1 = GetSize() + HeadSize();
 	//uint32 A2 = EltToVoid.GetSize() + EltToVoid.HeadSize();
-	if (Size + HeadSize() != EltToVoid.GetSize() + EltToVoid.HeadSize()) {
-		Size--;
-		SetSizeLength(CodedSizeLength(Size, SizeLength, bSizeIsFinite) + 1);
+	if (GetSize() + HeadSize() != EltToVoid.GetSize() + EltToVoid.HeadSize()) {
+		SetSize(GetSize()-1);
+		SetSizeLength(CodedSizeLength(GetSize(), GetSizeLength(), IsFiniteSize()) + 1);
 	}
 
-	if (Size != 0) {
-		RenderHead(output, false, bKeepIntact); // the rest of the data is not rewritten
+	if (GetSize() != 0) {
+		RenderHead(output, false, bWithDefault); // the rest of the data is not rewritten
 	}
 
 	if (ComeBackAfterward) {

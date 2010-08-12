@@ -3,18 +3,18 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2005 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This library is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU Lesser General Public
 ** License as published by the Free Software Foundation; either
 ** version 2.1 of the License, or (at your option) any later version.
-** 
+**
 ** This library is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ** Lesser General Public License for more details.
-** 
+**
 ** You should have received a copy of the GNU Lesser General Public
 ** License along with this library; if not, write to the Free Software
 ** Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -45,36 +45,44 @@ EbmlDate::EbmlDate(const EbmlDate & ElementToClone)
 	myDate = ElementToClone.myDate;
 }
 
-uint64 EbmlDate::ReadData(IOCallback & input, ScopeMode ReadFully)
+filepos_t EbmlDate::ReadData(IOCallback & input, ScopeMode ReadFully)
 {
 	if (ReadFully != SCOPE_NO_DATA)
 	{
-		if (Size != 0) {
-			assert(Size == 8);
+		if (GetSize() != 0) {
+			assert(GetSize() == 8);
 			binary Buffer[8];
-			input.readFully(Buffer, Size);
-		
+			input.readFully(Buffer, GetSize());
+
 			big_int64 b64;
 			b64.Eval(Buffer);
-			
+
 			myDate = b64;
-			bValueIsSet = true;
+			SetValueIsSet();
 		}
 	}
-	
-	return Size;
+
+	return GetSize();
 }
 
-uint32 EbmlDate::RenderData(IOCallback & output, bool bForceRender, bool bKeepIntact)
+filepos_t EbmlDate::RenderData(IOCallback & output, bool bForceRender, bool bWithDefault)
 {
-	if (Size != 0) {
-		assert(Size == 8);
+	if (GetSize() != 0) {
+		assert(GetSize() == 8);
 		big_int64 b64(myDate);
-		
-		output.writeFully(&b64.endian(),Size);
+
+		output.writeFully(&b64.endian(),GetSize());
 	}
 
-	return Size;
+	return GetSize();
+}
+
+bool EbmlDate::IsSmallerThan(const EbmlElement *Cmp) const
+{
+	if (EbmlId(*this) == EbmlId(*Cmp))
+		return this->myDate < static_cast<const EbmlDate *>(Cmp)->myDate;
+	else
+		return false;
 }
 
 END_LIBEBML_NAMESPACE

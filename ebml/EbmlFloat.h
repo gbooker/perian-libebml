@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2005 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -30,7 +30,7 @@
 
 /*!
 	\file
-	\version \$Id: EbmlFloat.h 1079 2005-03-03 13:18:14Z robux4 $
+	\version \$Id$
 	\author Steve Lhomme     <robux4 @ users.sf.net>
 */
 #ifndef LIBEBML_FLOAT_H
@@ -56,41 +56,45 @@ class EBML_DLL_API EbmlFloat : public EbmlElement {
 		EbmlFloat(const double DefaultValue, const Precision prec = FLOAT_32);
 		EbmlFloat(const EbmlFloat & ElementToClone);
 
-		bool ValidateSize() const 
+		virtual bool ValidateSize() const 
 		{
-			return (Size == 4 || Size == 8);
+			return (GetSize() == 4 || GetSize() == 8);
 		}
 	
-		uint32 RenderData(IOCallback & output, bool bForceRender, bool bKeepIntact = false);
-		uint64 ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
-		uint64 UpdateSize(bool bKeepIntact = false, bool bForceRender = false);
+		filepos_t RenderData(IOCallback & output, bool bForceRender, bool bWithDefault = false);
+		filepos_t ReadData(IOCallback & input, ScopeMode ReadFully = SCOPE_ALL_DATA);
+		filepos_t UpdateSize(bool bWithDefault = false, bool bForceRender = false);
 
 		void SetPrecision(const EbmlFloat::Precision prec = FLOAT_32) 
 		{
 			if (prec == FLOAT_64)
-				Size = 8;
+				SetSize_(8);
 			else
-				Size = 4; // default size
+				SetSize_(4); // default size
 		}
 
 	
 //		EbmlFloat & operator=(const float NewValue) { Value = NewValue; return *this;}
-		EbmlFloat & operator=(const double NewValue) { Value = NewValue; bValueIsSet = true; return *this;}
+		EbmlFloat & operator=(const double NewValue) { Value = NewValue; SetValueIsSet(); return *this;}
 
-		bool operator<(const EbmlFloat & EltCmp) const {return Value < EltCmp.Value;}
+		virtual bool IsSmallerThan(const EbmlElement *Cmp) const;
 		
-		operator const float() const {return float(Value);}
-		operator const double() const {return double(Value);}
+		operator const float() const;
+		operator const double() const;
 
-		void SetDefaultValue(double aValue) {assert(!DefaultIsSet); DefaultValue = aValue; DefaultIsSet = true;}
+		void SetDefaultValue(double);
     
-		const double DefaultVal() const {assert(DefaultIsSet); return DefaultValue;}
+		const double DefaultVal() const;
 
 		bool IsDefaultValue() const {
 			return (DefaultISset() && Value == DefaultValue);
 		}
 		
-	protected:
+#if defined(EBML_STRICT_API)
+    private:
+#else
+    protected:
+#endif
 		double Value; /// The actual value of the element
 		double DefaultValue;
 };

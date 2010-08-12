@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2004 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -39,21 +39,17 @@
 
 START_LIBEBML_NAMESPACE
 
-const EbmlSemantic EbmlHead_ContextList[] =
-{
-	EbmlSemantic(true, true, EVersion::ClassInfos),        ///< EBMLVersion
-	EbmlSemantic(true, true, EReadVersion::ClassInfos),    ///< EBMLReadVersion
-	EbmlSemantic(true, true, EMaxIdLength::ClassInfos),    ///< EBMLMaxIdLength
-	EbmlSemantic(true, true, EMaxSizeLength::ClassInfos),  ///< EBMLMaxSizeLength
-	EbmlSemantic(true, true, EDocType::ClassInfos),        ///< DocType
-	EbmlSemantic(true, true, EDocTypeVersion::ClassInfos), ///< DocTypeVersion
-	EbmlSemantic(true, true, EDocTypeReadVersion::ClassInfos), ///< DocTypeReadVersion
-};
+DEFINE_START_SEMANTIC(EbmlHead)
+DEFINE_SEMANTIC_ITEM(true, true, EVersion)        ///< EBMLVersion
+DEFINE_SEMANTIC_ITEM(true, true, EReadVersion)    ///< EBMLReadVersion
+DEFINE_SEMANTIC_ITEM(true, true, EMaxIdLength)    ///< EBMLMaxIdLength
+DEFINE_SEMANTIC_ITEM(true, true, EMaxSizeLength)  ///< EBMLMaxSizeLength
+DEFINE_SEMANTIC_ITEM(true, true, EDocType)        ///< DocType
+DEFINE_SEMANTIC_ITEM(true, true, EDocTypeVersion) ///< DocTypeVersion
+DEFINE_SEMANTIC_ITEM(true, true, EDocTypeReadVersion) ///< DocTypeReadVersion
+DEFINE_END_SEMANTIC(EbmlHead)
 
-const EbmlSemanticContext EbmlHead_Context = EbmlSemanticContext(countof(EbmlHead_ContextList), EbmlHead_ContextList, NULL, *GetEbmlGlobal_Context, &EbmlHead::ClassInfos);
-
-EbmlId EbmlHead_TheId(0x1A45DFA3, 4);
-const EbmlCallbacks EbmlHead::ClassInfos(EbmlHead::Create, EbmlHead_TheId, "EBMLHead\0ratamapaga", EbmlHead_Context);
+DEFINE_EBML_MASTER_ORPHAN(EbmlHead, 0x1A45DFA3, 4, "EBMLHead\0ratamapaga");
 
 EbmlHead::EbmlHead()
  :EbmlMaster(EbmlHead_Context)

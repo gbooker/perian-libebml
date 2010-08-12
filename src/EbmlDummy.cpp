@@ -3,7 +3,7 @@
 **
 ** <file/class description>
 **
-** Copyright (C) 2002-2004 Steve Lhomme.  All rights reserved.
+** Copyright (C) 2002-2010 Steve Lhomme.  All rights reserved.
 **
 ** This file is part of libebml.
 **
@@ -30,7 +30,7 @@
 
 /*!
 	\file
-	\version \$Id: EbmlDummy.cpp 639 2004-07-09 20:59:14Z mosu $
+	\version \$Id$
 	\author Steve Lhomme     <robux4 @ users.sf.net>
 */
 #include "ebml/EbmlDummy.h"
@@ -38,8 +38,13 @@
 
 START_LIBEBML_NAMESPACE
 
-const EbmlId EbmlDummy::DummyRawId(0xFF, 1);
-const EbmlSemanticContext EbmlDummy_Context = EbmlSemanticContext(0, NULL, NULL, *GetEbmlGlobal_Context, &EbmlDummy::ClassInfos);
-const EbmlCallbacks EbmlDummy::ClassInfos(NULL, DummyRawId, "DummyElement", EbmlDummy_Context);
+DEFINE_EBML_CLASS_ORPHAN(EbmlDummy, 0xFF, 1, "DummyElement");
+
+const EbmlId EbmlDummy::DummyRawId = Id_EbmlDummy;
+
+EbmlDummy::operator const EbmlId &()
+{
+    return DummyId;
+}
 
 END_LIBEBML_NAMESPACE
