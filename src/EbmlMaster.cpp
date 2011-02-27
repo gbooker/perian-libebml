@@ -146,7 +146,7 @@ uint64 EbmlMaster::UpdateSize(bool bWithDefault, bool bForceRender)
 		(ElementList[Index])->UpdateSize(bWithDefault, bForceRender);
 		uint64 SizeToAdd = (ElementList[Index])->ElementSize(bWithDefault);
 #if defined(_DEBUG) || defined(DEBUG)
-		if (SizeToAdd == (0-1))
+		if (static_cast<int64_t>(SizeToAdd) == (0-1))
 			return (0-1);
 #endif // DEBUG
 		SetSize_(GetSize() + SizeToAdd);
@@ -461,17 +461,22 @@ void EbmlMaster::Read(EbmlStream & inDataStream, const EbmlSemanticContext & sCo
 			}
 		}
 	processCrc:
-        EBML_MASTER_ITERATOR Itr;
+        EBML_MASTER_ITERATOR Itr, CrcItr;
         for (Itr = ElementList.begin(); Itr != ElementList.end();) {
 			if ((EbmlId)(*(*Itr)) == EBML_ID(EbmlCrc32)) {
 				bChecksumUsed = true;
 				// remove the element
 				Checksum = *(static_cast<EbmlCrc32*>(*Itr));
-				delete *Itr;
-				Remove(Itr);
+                CrcItr = Itr;
+                break;
 			}
-            else ++Itr;
+            ++Itr;
 		}
+        if (bChecksumUsed)
+        {
+		    delete *CrcItr;
+		    Remove(CrcItr);
+        }
 		SetValueIsSet();
 	}
 }
