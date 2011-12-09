@@ -101,9 +101,9 @@ DECLARE_EBML_BINARY(EbmlCrc32)
 };
 
 template <class T>
-inline unsigned int GetAlignment(T *dummy=NULL) // VC60 workaround
+inline unsigned int GetAlignment(T */* dummy */=NULL) // VC60 workaround
 {
-#if (_MSC_VER >= 1300)
+#if defined(_MSC_VER) && (_MSC_VER >= 1300)
 	return __alignof(T);
 #elif defined(__GNUC__)
 	return __alignof__(T);
@@ -131,7 +131,7 @@ inline bool IsAlignedOn(const void *p, unsigned int alignment)
 }
 
 template <class T>
-inline bool IsAligned(const void *p, T *dummy=NULL)	// VC60 workaround
+inline bool IsAligned(const void *p, T */* dummy */=NULL)	// VC60 workaround
 {
 	return IsAlignedOn(p, GetAlignment<T>());
 }

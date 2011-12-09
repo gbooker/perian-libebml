@@ -145,10 +145,10 @@ uint64 EbmlMaster::UpdateSize(bool bWithDefault, bool bForceRender)
 			continue;
 		(ElementList[Index])->UpdateSize(bWithDefault, bForceRender);
 		uint64 SizeToAdd = (ElementList[Index])->ElementSize(bWithDefault);
-#if defined(_DEBUG) || defined(DEBUG)
+#if defined(LIBEBML_DEBUG)
 		if (static_cast<int64>(SizeToAdd) == (0-1))
 			return (0-1);
-#endif // DEBUG
+#endif // LIBEBML_DEBUG
 		SetSize_(GetSize() + SizeToAdd);
 	}
 	if (bChecksumUsed) {
@@ -167,7 +167,7 @@ filepos_t EbmlMaster::WriteHead(IOCallback & output, int nSizeLength, bool bWith
 /*!
 	\todo this code is very suspicious !
 */
-filepos_t EbmlMaster::ReadData(IOCallback & input, ScopeMode ReadFully)
+filepos_t EbmlMaster::ReadData(IOCallback & input, ScopeMode /* ReadFully */)
 {
 	input.setFilePointer(GetSize(), seek_current);
 	return GetSize();
@@ -204,10 +204,10 @@ bool EbmlMaster::CheckMandatory() const
 	for (EltIdx = 0; EltIdx < EBML_CTX_SIZE(Context); EltIdx++) {
 		if (EBML_CTX_IDX(Context,EltIdx).IsMandatory()) {
 			if (FindElt(EBML_CTX_IDX_INFO(Context,EltIdx)) == NULL) {
-#if defined(_DEBUG) || defined(DEBUG)
+#if defined(LIBEBML_DEBUG)
 				// you are missing this Mandatory element
 // 				const char * MissingName = EBML_INFO_NAME(EBML_CTX_IDX_INFO(Context,EltIdx));
-#endif // DEBUG
+#endif // LIBEBML_DEBUG
 				return false;
 			}
 		}
